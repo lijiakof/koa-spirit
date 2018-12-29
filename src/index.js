@@ -1,9 +1,8 @@
 const http = require('http');
 const Emitter = require('events');
-//const compose = require('./compose');
 
 /**
- * 通用上下文
+ * Context
  */
 const context = {
     _body: null,
@@ -18,7 +17,7 @@ const context = {
     }
 };
 
-class JustKoa extends Emitter {
+class KoaSpirit extends Emitter {
     constructor() {
         super();
         this.middleware = [];
@@ -26,7 +25,7 @@ class JustKoa extends Emitter {
     }
 
     /**
-     * 服务事件监听
+     * Service event listener
      * @param {*} args
      */
     listen(...args) {
@@ -35,7 +34,7 @@ class JustKoa extends Emitter {
     }
 
     /**
-     * 注册使用中间件
+     * Registration middleware
      * @param {Function} fn
      */
     use(fn) {
@@ -45,7 +44,7 @@ class JustKoa extends Emitter {
     }
 
     /**
-     * 中间件总回调方法
+     * Middleware total callback
      */
     callback() {
         if (this.listeners('error').length === 0) {
@@ -55,7 +54,7 @@ class JustKoa extends Emitter {
         const handleRequest = (req, res) => {
             let context = this.createContext(req, res);
             let middleware = this.middleware;
-            // 执行中间件
+            // Execution middleware
             this.compose(middleware)(context).catch(err => this.onerror(err));
         };
         return handleRequest;
@@ -99,7 +98,7 @@ class JustKoa extends Emitter {
     }
 
     /**
-     * 异常处理监听
+     * Exception handling listener
      * @param {EndOfStreamError} err
      */
     onerror(err) {
@@ -107,7 +106,7 @@ class JustKoa extends Emitter {
     }
 
     /**
-     * 创建通用上下文
+     * Create Context
      * @param {Object} req
      * @param {Object} res
      */
@@ -119,4 +118,4 @@ class JustKoa extends Emitter {
     }
 }
 
-module.exports = JustKoa;
+module.exports = KoaSpirit;
