@@ -1,2 +1,9 @@
 # koa-spirit
-KOA 精髓
+
+* events
+* http
+* compose
+* Object.create()
+* Function.prototype.bind()
+
+## EventEmitter

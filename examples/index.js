@@ -3,6 +3,7 @@ const KoaSpirit = require('../src/index');
 const app = new KoaSpirit();
 
 app.use(async (ctx, next) => {
+    console.log('start');
     const start = Date.now();
 
     await next();
@@ -12,7 +13,7 @@ app.use(async (ctx, next) => {
 });
 
 app.use(async ctx => {
-    ctx.body = 'Hello spirit of Koa';
+    ctx.body = 'The spirit of Koa';
 });
 
 app.listen(3001, () => {

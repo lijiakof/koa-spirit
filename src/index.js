@@ -1,9 +1,7 @@
 const http = require('http');
 const Emitter = require('events');
 
-/**
- * Context
- */
+// Context
 const context = {
     _body: null,
 
@@ -24,72 +22,50 @@ class KoaSpirit extends Emitter {
         this.context = Object.create(context);
     }
 
-    /**
-     * Service event listener
-     * @param {*} args
-     */
+    // Service event listener
     listen(...args) {
         const server = http.createServer(this.callback());
         return server.listen(...args);
     }
 
-    /**
-     * Registration middleware
-     * @param {Function} fn
-     */
+    // Registration middleware
     use(fn) {
         if (typeof fn === 'function') {
             this.middleware.push(fn);
         }
     }
 
-    /**
-     * Middleware total callback
-     */
+    // Middleware total callback
     callback() {
-        if (this.listeners('error').length === 0) {
-            this.on('error', this.onerror);
-        }
+        if (this.listeners('error').length === 0) this.on('error', this.onerror);
 
         const handleRequest = (req, res) => {
-            let context = this.createContext(req, res);
-            let middleware = this.middleware;
-            // Execution middleware
-            this.compose(middleware)(context).catch(err => this.onerror(err));
+            let ctx = this.createContext(req, res);
+            
+            const fn = this.compose(this.middleware);
+            fn(ctx).catch(err => this.onerror(err));
         };
+
         return handleRequest;
     }
-
+    
     compose(middleware) {
-        if (!Array.isArray(middleware)) {
-            throw new TypeError('Middleware stack must be an array!');
-        }
+        if (!Array.isArray(middleware)) throw new TypeError('Middleware stack must be an array!');
 
         return function (ctx, next) {
             let index = -1;
-
             return dispatch(0);
 
             function dispatch(i) {
-                if (i < index) {
-                    return Promise.reject(new Error('next() called multiple times'));
-                }
+                if (i < index) return Promise.reject(new Error('next() called multiple times'));
+
                 index = i;
-
                 let fn = middleware[i];
-
-                if (i === middleware.length) {
-                    fn = next;
-                }
-
-                if (!fn) {
-                    return Promise.resolve();
-                }
+                if (i === middleware.length) fn = next;
+                if (!fn) return Promise.resolve();
 
                 try {
-                    return Promise.resolve(fn(ctx, () => {
-                        return dispatch(i + 1);
-                    }));
+                    return Promise.resolve(fn(ctx, dispatch.bind(null, i + 1)));
                 } catch (err) {
                     return Promise.reject(err);
                 }
@@ -97,19 +73,11 @@ class KoaSpirit extends Emitter {
         };
     }
 
-    /**
-     * Exception handling listener
-     * @param {EndOfStreamError} err
-     */
     onerror(err) {
         console.log(err);
     }
 
-    /**
-     * Create Context
-     * @param {Object} req
-     * @param {Object} res
-     */
+    // Create Context
     createContext(req, res) {
         let context = Object.create(this.context);
         context.req = req;
